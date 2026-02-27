@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-from pathlib import Path
 from datetime import datetime
 
 # ----------------------------
@@ -10,7 +9,6 @@ from datetime import datetime
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Hardcoded credentials (Demo only)
 USERNAME = "admin"
 PASSWORD = "password123"
 
@@ -36,21 +34,35 @@ def logout():
     st.rerun()
 
 # ----------------------------
-# File Upload
+# Multiple File Upload
 # ----------------------------
 
-def upload_file():
-    st.header("📤 Upload File")
+def upload_files():
+    st.header("📤 Upload Files")
 
-    uploaded_file = st.file_uploader("Choose a file")
+    uploaded_files = st.file_uploader(
+        "Choose files",
+        accept_multiple_files=True
+    )
 
-    if uploaded_file is not None:
-        save_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+    if uploaded_files:
+        for uploaded_file in uploaded_files:
+            save_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
 
-        with open(save_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
+            # Prevent overwrite by renaming if exists
+            base, ext = os.path.splitext(uploaded_file.name)
+            counter = 1
+            while os.path.exists(save_path):
+                save_path = os.path.join(
+                    UPLOAD_FOLDER,
+                    f"{base}_{counter}{ext}"
+                )
+                counter += 1
 
-        st.success(f"File '{uploaded_file.name}' uploaded successfully!")
+            with open(save_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+
+        st.success(f"{len(uploaded_files)} file(s) uploaded successfully!")
         st.rerun()
 
 # ----------------------------
@@ -66,10 +78,9 @@ def list_files():
         st.info("No files uploaded yet.")
         return
 
-    for file_name in files:
+    for file_name in sorted(files):
         file_path = os.path.join(UPLOAD_FOLDER, file_name)
 
-        # Get timestamp
         timestamp = os.path.getmtime(file_path)
         upload_time = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -110,7 +121,7 @@ def main():
         st.sidebar.button("Logout", on_click=logout)
         st.title("📁 File Storage App")
 
-        upload_file()
+        upload_files()
         list_files()
 
 if __name__ == "__main__":
