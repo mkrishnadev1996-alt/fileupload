@@ -36,7 +36,7 @@ def logout():
 # ----------------------------
 # Multiple File Upload
 # ----------------------------
-
+# Updated Funciton
 def upload_files():
     st.header("📤 Upload Files")
 
@@ -46,25 +46,28 @@ def upload_files():
     )
 
     if uploaded_files:
-        for uploaded_file in uploaded_files:
-            save_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+        if st.button("Upload Selected Files"):
+            for uploaded_file in uploaded_files:
+                save_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
 
-            # Prevent overwrite by renaming if exists
-            base, ext = os.path.splitext(uploaded_file.name)
-            counter = 1
-            while os.path.exists(save_path):
-                save_path = os.path.join(
-                    UPLOAD_FOLDER,
-                    f"{base}_{counter}{ext}"
-                )
-                counter += 1
+                # Prevent overwrite
+                base, ext = os.path.splitext(uploaded_file.name)
+                counter = 1
+                while os.path.exists(save_path):
+                    save_path = os.path.join(
+                        UPLOAD_FOLDER,
+                        f"{base}_{counter}{ext}"
+                    )
+                    counter += 1
 
-            with open(save_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+                with open(save_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
 
-        st.success(f"{len(uploaded_files)} file(s) uploaded successfully!")
-        st.rerun()
+            st.success(f"{len(uploaded_files)} file(s) uploaded successfully!")
 
+            # Clear uploader after upload
+            st.session_state["file_uploader_key"] = None
+            st.rerun()
 # ----------------------------
 # File List + Download + Delete
 # ----------------------------
@@ -126,3 +129,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
